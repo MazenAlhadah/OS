@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CPU Scheduling Comparison | Round Robin vs Priority</title>
+  <meta name="description"
+    content="Interactive CPU scheduling simulator. Compare Round Robin and Priority Scheduling algorithms with real-time Gantt charts, metrics, and visual comparison." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="app-wrapper">
+
+
+
+    <br>
+    <section class="card" id="input-section" aria-labelledby="input-title">
+      <h2 class="section-title" id="input-title">
+        Add Processes
+      </h2>
+
+      <div class="quantum-row">
+        <label for="timeQuantum"> Time Quantum (Round Robin):</label>
+        <input type="number" id="timeQuantum" value="2" min="1" placeholder="e.g. 2" />
+        <span style="font-size:.8rem;color:var(--text-muted);">Must be &gt; 0</span>
+      </div>
+
+      <div class="toggle-row" style="margin-bottom:.85rem;">
+        <span class="toggle-label"> Priority Mode:</span>
+        <label class="toggle-switch" data-tip="Toggle Preemptive / Non-Preemptive">
+          <input type="checkbox" id="preemptiveToggle" />
+          <span class="toggle-track"></span>
+          Preemptive
+        </label>
+        <span style="font-size:.78rem;color:var(--text-muted);"></span>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="pid">Process ID</label>
+          <input type="text" id="pid" placeholder="e.g. P1" maxlength="6" />
+        </div>
+        <div class="form-group">
+          <label for="arrivalTime">Arrival Time</label>
+          <input type="number" id="arrivalTime" placeholder="0" min="0" value="0" />
+        </div>
+        <div class="form-group">
+          <label for="burstTime">Burst Time</label>
+          <input type="number" id="burstTime" placeholder="e.g. 5" min="1" />
+        </div>
+        <div class="form-group">
+          <label for="priority" data-tip="Lower value = Higher priority">Priority</label>
+          <input type="number" id="priority" placeholder="e.g. 1" min="1" />
+        </div>
+      </div>
+
+      <div class="msg-box msg-error" id="inputError"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="addProcessBtn" onclick="addProcess()">
+          Add Process
+        </button>
+        <button class="btn btn-ghost" onclick="resetAll()"> Reset All</button>
+      </div>
+
+      <div class="table-wrapper" style="margin-top:1.2rem;">
+        <table id="processTable" aria-label="Process list">
+          <thead>
+            <tr>
+              <th>PID</th>
+              <th>Arrival Time</th>
+              <th>Burst Time</th>
+              <th>Priority</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="processTableBody">
+            <tr>
+              <td colspan="5" class="empty-table">No processes added yet. Use the form above or load a preset.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="run-section" id="runSection">
+      <p>Both algorithms run on the <strong>same process set</strong>. Add at least 1 process to simulate.</p>
+      <button class="btn btn-run" id="runBtn" onclick="runSimulation()">
+        ▶ Run Simulation
+      </button>
+      <div class="msg-box msg-warn" id="runWarning" style="display:none;"></div>
+    </div>
+
+    <div id="resultsRoot">
+
+      <div class="two-col result-section" id="ganttSection">
+
+        <div class="card card-rr">
+          <h2 class="section-title">
+            <span class="badge badge-rr">RR</span> Round Robin – Gantt Chart
+            <span style="margin-left:auto;font-size:.75rem;font-weight:400;color:var(--text-muted);"
+              id="rrQuantumLabel"></span>
+          </h2>
+          <div class="gantt-wrapper" id="rrGanttWrapper">
+            <div class="gantt-placeholder">Run the simulation to see results.</div>
+          </div>
+          <div class="legend" id="rrLegend"></div>
+        </div>
+
+        <div class="card card-ps">
+          <h2 class="section-title">
+            <span class="badge badge-ps">PS</span> Priority Scheduling – Gantt Chart
+            <span style="margin-left:auto;font-size:.75rem;font-weight:400;color:var(--text-muted);"
+              id="psModeLabel"></span>
+          </h2>
+          <div class="gantt-wrapper" id="psGanttWrapper">
+            <div class="gantt-placeholder">Run the simulation to see results.</div>
+          </div>
+          <div class="legend" id="psLegend"></div>
+        </div>
+      </div>
+
+      <div class="two-col result-section" id="metricsSection">
+
+        <div class="card card-rr">
+          <h2 class="section-title">
+            <span class="badge badge-rr">RR</span> Round Robin – Metrics
+          </h2>
+          <div class="three-col" id="rrStats" style="margin-bottom:1rem;"></div>
+          <div class="table-wrapper">
+            <table class="results-table" aria-label="Round Robin metrics">
+              <thead>
+                <tr>
+                  <th>PID</th>
+                  <th>AT</th>
+                  <th>BT</th>
+                  <th class="col-wt">WT</th>
+                  <th class="col-tat">TAT</th>
+                  <th class="col-rt">RT</th>
+                </tr>
+              </thead>
+              <tbody id="rrMetricsBody"></tbody>
+            </table>
+          </div>
+          <details style="margin-top:.75rem;">
+            <summary> What do these metrics mean?</summary>
+            <div>
+              <strong>WT (Waiting Time)</strong> – Time a process spends waiting in the ready queue.<br />
+              <strong>TAT (Turnaround Time)</strong> – Total time from arrival to completion (TAT = CT − AT).<br />
+              <strong>RT (Response Time)</strong> – Time from arrival until the CPU first responds.<br /><br />
+              <em>Round Robin is fair by design — each process gets equal CPU slices of the quantum. It minimises
+                starvation at the cost of higher average TAT for long processes.</em>
+            </div>
+          </details>
+        </div>
+
+        <div class="card card-ps">
+          <h2 class="section-title">
+            <span class="badge badge-ps">PS</span> Priority Scheduling – Metrics
+          </h2>
+          <div class="three-col" id="psStats" style="margin-bottom:1rem;"></div>
+          <div class="table-wrapper">
+            <table class="results-table" aria-label="Priority scheduling metrics">
+              <thead>
+                <tr>
+                  <th>PID</th>
+                  <th>AT</th>
+                  <th>BT</th>
+                  <th>Pr</th>
+                  <th class="col-wt">WT</th>
+                  <th class="col-tat">TAT</th>
+                  <th class="col-rt">RT</th>
+                </tr>
+              </thead>
+              <tbody id="psMetricsBody"></tbody>
+            </table>
+          </div>
+          <div id="starvationAlert"></div>
+          <details style="margin-top:.75rem;">
+            <summary> About Priority Scheduling</summary>
+            <div>
+              <strong>Non-Preemptive:</strong> Once a process starts, it runs to completion before a higher-priority
+              arrival can take over.<br />
+              <strong>Preemptive:</strong> A newly arrived higher-priority process immediately displaces the running
+              process.<br /><br />
+              <strong>Starvation risk:</strong> Low-priority processes may wait indefinitely if high-priority ones keep
+              arriving. A real OS uses <em>aging</em> to gradually boost priority over time.
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="result-section" id="comparisonSection">
+        <div class="card card-cmp">
+          <h2 class="section-title">
+            <span class="badge badge-cmp"></span> Algorithm Comparison
+          </h2>
+
+          <div class="two-col" style="gap:1.5rem;align-items:start;">
+
+            <div class="comparison-row" id="comparisonBars"></div>
+
+            <div>
+              <div id="comparisonSummary"></div>
+              <hr class="divider" />
+              <div id="fairnessSummary"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>

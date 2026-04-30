@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Project OS Team(علي الله)</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+</head>
+
+<body>
+
+<h1>CPU Scheduling Comparison</h1>
+
+<div class="card">
+<h2>Process Input</h2>
+<input id="pid" placeholder="Process ID">
+<input id="at" type="number" placeholder="Arrival Time">
+<input id="bt" type="number" placeholder="Burst Time">
+<input id="pr" type="number" placeholder="Priority">
+<br>
+<button onclick="add()">Add Process</button>
+<button onclick="resetAll()">Reset</button>
+</div>
+<div class="card">
+<h2>Round Robin Settings</h2>
+<input id="q" type="number" placeholder="Time Quantum (once only)">
+<p style="color:#94a3b8;">Time Quantum applies to ALL processes</p>
+</div>
+<div class="card">
+<table id="table">
+<tr>
+<th>ID</th><th>AT</th><th>BT</th><th>PR</th><th>Delete</th>
+</tr>
+</table>
+</div>
+<div class="card">
+<label>
+<input type="checkbox" id="pre"> Preemptive Priority
+</label>
+</div>
+
+<button class="run" onclick="run()">Run Simulation</button>
+
+<div class="card">
+<h2>Round Robin</h2>
+<div id="rrG" class="gantt"></div>
+<div id="rrRes"></div>
+</div>
+
+<div class="card">
+<h2>Priority</h2>
+<div id="prG" class="gantt"></div>
+<div id="prRes"></div>
+</div>
+
+<div class="card">
+<h2>Comparison</h2>
+<div id="cmp"></div>
+</div>
+
+<script src="js.js"></script>
+
+</body>
+</html>
